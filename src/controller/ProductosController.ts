@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source";
 import { Productos } from "../entity/Productos";
 import { resolveObjectURL } from "buffer";
 import { ValidationError, validate } from "class-validator";
+import { Categoria } from "../entity/Categoria";
 
 class ProductosController{
 
@@ -13,7 +14,7 @@ class ProductosController{
         //instancia bd
          const repo= AppDataSource.getRepository(Productos);
          //consulta de bd x metodo find
-         const listaProductos= await repo.find({where:{estado:true}});
+         const listaProductos= await repo.find({where:{estado:true}, relations:{categoria:true}});
 
         // valido si trajo datos, sino devuelvo error
          if(listaProductos.length==0){
@@ -86,8 +87,18 @@ class ProductosController{
                 return res.status(400).json(errors);
 
             }
-
-
+            //valido de categoria
+            const repoCategoria = AppDataSource.getRepository(Categoria);
+            //let cat;
+            try {
+                 //cat=        
+                await repoCategoria.findOneOrFail({where:(categoria)})
+                
+            } catch (ex) {
+                return res.status(400).json({message:"No exite la categoria."})
+                
+           }
+            // product.categoria= cat;
            await repoProducto.save(product);  
            
             
@@ -109,7 +120,7 @@ class ProductosController{
             const repo= AppDataSource.getRepository(Productos);
 
             try {
-                const producto= await repo.findOneOrFail({where:{id}});  
+                const producto= await repo.findOneOrFail({where:{id, estado:true},relations:{categoria:true}});  
                 return res.status(200).json(producto);
             } catch (error) {
                 return res.status(404).json({message:"El producto con el ID indcado no existe en el base de datos."})
@@ -142,7 +153,7 @@ class ProductosController{
                 return res.status(404).json({message:"El producto con el ID indcado no existe en el base de datos."})
             }
 
-            //valiado datos de entrada obligatorios
+          /*  //valiado datos de entrada obligatorios
             if(!nombre){
                 return res.status(400).json({message:"Debe indicar el nombre del producto."})
             }
@@ -154,7 +165,7 @@ class ProductosController{
             }
             if(!categoria){
                 return res.status(400).json({message:"Debe indicar la categoria del producto."})
-            }
+            }*/
 
 
             //volcado de datos
@@ -163,6 +174,22 @@ class ProductosController{
             producto.categoria=categoria;
             producto.stock=stock;
 
+             //validacion con class validator
+           
+             const errors= await validate(producto,{validationError:{target:false, value:false}});
+
+               //valido de categoria
+            const repoCategoria = AppDataSource.getRepository(Categoria);
+            let cat;
+            try {  
+                cat= await repoCategoria.findOneOrFail({where:(categoria)})
+                
+            } catch (ex) {
+                return res.status(400).json({message:"No exite la categoria."})
+                
+           }
+           producto.categoria=cat;
+ 
             //modifico
             await repo.save(producto);
             //retorno mensaje de modificado OK.      
@@ -173,6 +200,7 @@ class ProductosController{
             return res.status(404).json({message:"Error al actualizar el producto."})
            
         }
+        
 
     }
     static delete= async(req: Request, res:Response)=>{
@@ -180,9 +208,9 @@ class ProductosController{
         try {
             const id = parseInt(req.params['id']);
 
-            //validacion de más, por lo que vimos en clase.
+            //validacion de mas, por lo que vimos en clase.
             if(!id){
-                return res.status(400).json({message:"Debe indicar el ID"})              
+                return res.status(400).json({message:"Debe indicar el ID"})
             }
 
             const repo= AppDataSource.getRepository(Productos);

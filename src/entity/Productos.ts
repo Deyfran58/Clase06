@@ -1,37 +1,33 @@
-import { IsNotEmpty, IsPositive, MaxLength, max, maxLength } from "class-validator";
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, OneToMany } from "typeorm";
+import { IsNotEmpty } from "class-validator";
+import { Productos } from "./Productos"; // Asumiendo que tienes una entidad Categoria definida
 
 @Entity()
-export class Productos{
- 
-    @PrimaryColumn()
-    id:number;
-    @Column({length:50,nullable:false})
-    @MaxLength(50,{message:'Debe de contene un máximo de 50 caracteres'})
-    @IsNotEmpty({message:'Debe indicar el nombre del producto'})
-
+export class Proveedor {
+    
+    @PrimaryGeneratedColumn()
+    id: number;
+    
+    @Column({ length: 50, nullable: false })
+    @IsNotEmpty({ message: 'Debe indicar el nombre del producto.' })
     nombre: string;
-    @Column()
-    @IsNotEmpty({message:'Debe indicar el precio'})
-
-    precio: number;
-    @Column()
-    @IsPositive({message:'Debe indicar un valor positivo'})
-    @IsNotEmpty({message:'Debe indicar el stock'})
-
-    stock:number;
-    @Column()
-    @IsNotEmpty({message:'Debe la categoria'})
-    categoria: number;
-
-    @Column({default:1})
-    estado: boolean;
     
-
-
-
-
-
-
+    @Column({ length: 50, nullable: false })
+    @IsNotEmpty({ message: 'Debe indicar el apellido.' })
+    apellidos: string;
     
+    @Column({ length: 50, nullable: false })
+    @IsNotEmpty({ message: 'Debe indicar la dirección.' })
+    direccion: string;
+    
+    @Column({ length: 50, nullable: false })
+    @IsNotEmpty({ message: 'Debe indicar la provincia.' })
+    provincia: string;
+    
+    @Column({ length: 50, nullable: false })
+    @IsNotEmpty({ message: 'Debe indicar el teléfono.' })
+    telefono: string;
+    
+    @OneToMany(()=>Productos, (productos)=> productos.Proveedor)   
+    productos: Productos;
 }
